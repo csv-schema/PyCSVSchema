@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*-coding: utf-8 -*-
 
-from setuptools import setup, find_packages
+from setuptools import setup
 from os import path
 
 here = path.abspath(path.dirname(__file__))
@@ -11,17 +11,18 @@ with open('README_pypi.rst') as f:
 
 setup(
     name='pycsvschema',
-    version='0.0.4',
+    version='0.0.5',
     description='PyCSVSchema is an implementation of CSV Schema in Python.',
     long_description=long_description,
     author='Guangyang Li',
     author_email='mail@guangyangli.com',
     license='MIT',
-    packages=find_packages(),
+    packages=['pycsvschema', 'pycsvschema.validators'],
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
+        'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Libraries :: Python Modules',
+        'Intended Audience :: Information Technology',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
@@ -31,4 +32,9 @@ setup(
     keywords='csv schema json jsonschema validation validator',
     url='https://github.com/crowdskout/PyCSVSchema',
     install_requires=["jsonschema", "rfc3986"],
+    package_data={
+        'pycsvschema': [
+            'schema.json'
+        ]
+    }
 )

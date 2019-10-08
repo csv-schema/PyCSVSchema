@@ -24,7 +24,7 @@ This project is under heavy development.
 ...     ]
 ... }
 >>> 
->>> v = Validator(filename='demo.csv', schema=schema)
+>>> v = Validator(csvfile='demo.csv', schema=schema)
 >>> v.validate()
 
 Traceback (most recent call last):

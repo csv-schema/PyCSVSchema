@@ -3,8 +3,9 @@
 
 import contextlib
 import sys
-from pycsvschema.validators import row_validators
 from itertools import islice
+
+from pycsvschema.validators import row_validators
 
 
 @contextlib.contextmanager

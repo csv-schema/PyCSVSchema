@@ -2,12 +2,13 @@
 # -*-coding: utf-8 -*-
 
 import csv
-from itertools import chain
 import json
-import jsonschema
-from pycsvschema.validators import header_validators
-from pycsvschema import defaults, _utilities
+from itertools import chain
 from typing import Dict, Optional
+
+import jsonschema
+from pycsvschema import _utilities, defaults
+from pycsvschema.validators import header_validators
 
 
 class Validator:

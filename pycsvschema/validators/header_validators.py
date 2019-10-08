@@ -1,10 +1,10 @@
 #!/usr/bin/python
 # -*-coding: utf-8 -*-
 
-from itertools import chain
 import re
-from pycsvschema import exceptions
-from pycsvschema import defaults, _utilities
+from itertools import chain
+
+from pycsvschema import _utilities, defaults, exceptions
 
 # Validators for root options
 # Each validator should be a generator, accepting three parameters:
