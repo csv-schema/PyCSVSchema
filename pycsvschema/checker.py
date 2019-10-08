@@ -3,27 +3,28 @@
 
 import csv
 import json
+import os
 from itertools import chain
 from typing import Dict, Optional
 
 import jsonschema
-from pycsvschema import _utilities, defaults
+from pycsvschema import defaults, utilities
 from pycsvschema.validators import header_validators
 
 
 class Validator:
     _CSV_DEFAULT_PARS = {
-        'delimiter': ',',
-        'doublequote': True,
-        'escapechar': None,
-        'lineterminator': '\r\n',
-        'quotechar': '"',
-        'quoting': csv.QUOTE_MINIMAL,
-        'skipinitialspace': False,
-        'strict': False
+        "delimiter": ",",
+        "doublequote": True,
+        "escapechar": None,
+        "lineterminator": "\r\n",
+        "quotechar": '"',
+        "quoting": csv.QUOTE_MINIMAL,
+        "skipinitialspace": False,
+        "strict": False,
     }
 
-    def __init__(self, csvfile: str, schema: Dict, output: Optional[str] = None, errors: str = 'raise', **kwargs):
+    def __init__(self, csvfile: str, schema: Dict, output: Optional[str] = None, errors: str = "raise", **kwargs):
         """
         :param csvfile: Path to CSV file
         :param schema: CSV Schema in dict
@@ -42,7 +43,7 @@ class Validator:
 
         self.output = output
 
-        if errors not in {'raise', 'coerce'}:
+        if errors not in {"raise", "coerce"}:
             raise ValueError("Unknown value for parameter errors")
         self.errors = errors
 
@@ -50,32 +51,35 @@ class Validator:
 
         self.csv_pars = {
             **self._CSV_DEFAULT_PARS,
-            **{k: kwargs[k]
-               for k in set(kwargs).intersection(self._CSV_DEFAULT_PARS)}
+            **{k: kwargs[k] for k in set(kwargs).intersection(self._CSV_DEFAULT_PARS)},
         }
 
-        self.column_validators = {'columns': {}, 'unfoundfields': {}}
+        self.column_validators = {"columns": {}, "unfoundfields": {}}
+
+        self.meta_schema_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "schema.json")
 
         self.validate_schema()
 
         self.update_schema()
 
     def validate_schema(self):
-        meta_schema = json.load(open('pycsvschema/schema.json', 'r'))
+        meta_schema = json.load(open(self.meta_schema_path, "r"))
         jsonschema.validate(self.schema, meta_schema)
 
     def update_schema(self):
         # Convert list in schema into set
         # missingValues
-        if 'missingValues' not in self.schema.keys():
-            self.schema['missingValues'] = defaults.MISSINGVALUES
-        self.schema['missingValues'] = set(self.schema['missingValues'])
+        if "missingValues" not in self.schema.keys():
+            self.schema["missingValues"] = defaults.MISSINGVALUES
+        self.schema["missingValues"] = set(self.schema["missingValues"])
 
         # enum in fields, definitions and patternFields
         fields_schema_with_array = (
-            self.schema['fields'], self.schema['definitions'].values(), self.schema['patternFields'].values()
+            self.schema.get("fields", []),
+            self.schema.get("definitions", {}).values(),
+            self.schema.get("patternFields", {}).values(),
         )
-        array_keywords = ('trueValues', 'falseValues', 'enum')
+        array_keywords = ("trueValues", "falseValues", "enum")
         for fields in fields_schema_with_array:
             for field in fields:
                 for k in array_keywords:
@@ -83,21 +87,21 @@ class Validator:
                         field[k] = set(field[k])
 
     def validate(self):
-        with open(self.csvfile, 'r') as csvfile:
+        with open(self.csvfile, "r") as csvfile:
             csv_reader = csv.reader(csvfile, **self.csv_pars)
 
             # Read first line as header
             self.header = next(csv_reader)
             self.prepare_field_schema()
 
-            with _utilities.file_writer(self.output) as output:
+            with utilities.file_writer(self.output) as output:
                 # Concat errors from header checking and row checking
                 for error in chain(self.check_header(), self.check_rows(csv_reader)):
-                    if self.errors == 'raise':
+                    if self.errors == "raise":
                         raise error
                     else:
                         output.write(str(error))
-                        output.write('\n')
+                        output.write("\n")
 
     def prepare_field_schema(self):
         """
@@ -157,18 +161,18 @@ class Validator:
             else:
                 header_index[v] = [k]
 
-        for field_schema in self.schema.get('fields', defaults.FIELDS):
-            column_info = {'field_schema': field_schema, 'column': field_schema['name']}
+        for field_schema in self.schema.get("fields", defaults.FIELDS):
+            column_info = {"field_schema": field_schema, "column": field_schema["name"]}
 
-            _utilities.find_row_validators(column_info=column_info, field_schema=field_schema)
+            utilities.find_row_validators(column_info=column_info, field_schema=field_schema)
 
             # Pass the validators to one or more than one columns
-            if field_schema['name'] in header_index.keys():
-                for column_index in header_index[field_schema['name']]:
-                    self.column_validators['columns'][column_index] = column_info
+            if field_schema["name"] in header_index.keys():
+                for column_index in header_index[field_schema["name"]]:
+                    self.column_validators["columns"][column_index] = column_info
             # Store the unfound field names in column_validators.unfoundfields
             else:
-                self.column_validators['unfoundfields'][field_schema['name']] = column_info
+                self.column_validators["unfoundfields"][field_schema["name"]] = column_info
 
     def check_header(self):
         for validator_name, validator in header_validators.HEADER_OPTIONS.items():
@@ -179,16 +183,16 @@ class Validator:
 
     def check_rows(self, csvreader, callback=lambda *args: None):
         for line_num, row in enumerate(csvreader):
-            for index, column_info in self.column_validators['columns'].items():
-                c = {'value': row[index], 'row': line_num + 1, 'column': self.header[index]}
+            for index, column_info in self.column_validators["columns"].items():
+                c = {"value": row[index], "row": line_num + 1, "column": self.header[index]}
 
                 # Update c.value to None if value is in missingValues
                 yield from header_validators.missingvalues(c, self.schema, self.column_validators)
 
-                for validator in column_info['validators']:
+                for validator in column_info["validators"]:
                     # Type validator convert cell value into target type, other validators don't accept None value
                     # if validator is row_validators.field_type or c['value'] is not None:
-                    yield from validator(c, self.schema, column_info['field_schema'])
+                    yield from validator(c, self.schema, column_info["field_schema"])
 
             callback(line_num, row)
 

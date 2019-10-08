@@ -18,18 +18,19 @@
 # boolean
 #
 
-import rfc3986
-import re
-import uuid
 import datetime
 import ipaddress
+import re
+import uuid
+
+import rfc3986
 from pycsvschema import defaults
 
 
 class TypeValidator(object):
     def __init__(self, field_schema):
         self.field_schema = field_schema
-        self.format = self.field_schema.get('format', defaults.FIELDS_FORMAT)
+        self.format = self.field_schema.get("format", defaults.FIELDS_FORMAT)
         self.value = None
         self.to_type = None
 
@@ -54,13 +55,15 @@ class TypeValidator(object):
 
 class StringValidator(TypeValidator):
     EMAIL_PATTERN = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
-    HOSTNAME_PATTERN = r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*" \
-                       r"([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
+    HOSTNAME_PATTERN = (
+        r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*"
+        r"([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
+    )
 
     def __init__(self, field_schema):
         super().__init__(field_schema=field_schema)
         self.to_type = str
-        self.pattern = ''
+        self.pattern = ""
 
     def validate(self, value):
         if value is None:
@@ -68,29 +71,29 @@ class StringValidator(TypeValidator):
 
         self.value = value
 
-        if self.format == 'email':
+        if self.format == "email":
             if not re.match(self.EMAIL_PATTERN, value):
                 return False
-        elif self.format == 'uri':
+        elif self.format == "uri":
             if not rfc3986.is_valid_uri(value, require_scheme=True):
                 return False
-        elif self.format == 'uuid':
-            return self.try_convert_value(value=value, to_type=uuid.UUID, convertor_config={'version': 4})
-        elif self.format == 'ipv4':
+        elif self.format == "uuid":
+            return self.try_convert_value(value=value, to_type=uuid.UUID, convertor_config={"version": 4})
+        elif self.format == "ipv4":
             return self.try_convert_value(value=value, to_type=ipaddress.IPv4Address)
-        elif self.format == 'ipv6':
+        elif self.format == "ipv6":
             return self.try_convert_value(value=value, to_type=ipaddress.IPv6Address)
-        elif self.format == 'hostname':
+        elif self.format == "hostname":
             if not re.match(self.HOSTNAME_PATTERN, value):
                 return False
-        elif self.format == 'datetime':
-            self.pattern = self.field_schema.get('datetimePattern', defaults.FIELDS_FORMAT_DATETIME_PATTERN)
+        elif self.format == "datetime":
+            self.pattern = self.field_schema.get("datetimePattern", defaults.FIELDS_FORMAT_DATETIME_PATTERN)
             try:
                 datetime.datetime.strptime(value, self.pattern)
             except Exception:
                 return False
-        elif self.field_schema.get('pattern', defaults.FIELDS_TYPE_STRING_PATTERN):
-            self.pattern = self.field_schema.get('pattern', defaults.FIELDS_TYPE_STRING_PATTERN)
+        elif self.field_schema.get("pattern", defaults.FIELDS_TYPE_STRING_PATTERN):
+            self.pattern = self.field_schema.get("pattern", defaults.FIELDS_TYPE_STRING_PATTERN)
             if not re.match(self.pattern, value):
                 return False
         return True
@@ -100,13 +103,13 @@ class NumberValidator(TypeValidator):
     def __init__(self, field_schema):
         super().__init__(field_schema=field_schema)
         self.to_type = float
-        self.groupchar = self.field_schema.get('groupChar', defaults.FIELDS_GROUPCHAR)
+        self.groupchar = self.field_schema.get("groupChar", defaults.FIELDS_GROUPCHAR)
 
     def validate(self, value):
         if value is None:
             return
 
-        value = value.replace(self.groupchar, '')
+        value = value.replace(self.groupchar, "")
         return self.try_convert_value(value=value, to_type=self.to_type, update=True)
 
 
@@ -114,13 +117,13 @@ class IntegerValidator(TypeValidator):
     def __init__(self, field_schema):
         super().__init__(field_schema=field_schema)
         self.to_type = int
-        self.groupchar = self.field_schema.get('groupChar', defaults.FIELDS_GROUPCHAR)
+        self.groupchar = self.field_schema.get("groupChar", defaults.FIELDS_GROUPCHAR)
 
     def validate(self, value):
         if value is None:
             return
 
-        value = value.replace(self.groupchar, '')
+        value = value.replace(self.groupchar, "")
         return self.try_convert_value(value=value, to_type=self.to_type, update=True)
 
 
@@ -128,8 +131,8 @@ class BooleanValidator(TypeValidator):
     def __init__(self, field_schema):
         super().__init__(field_schema=field_schema)
         self.to_type = bool
-        self.truevalues = self.field_schema.get('trueValues', defaults.FIELDS_TRUEVALUES)
-        self.falsevalues = self.field_schema.get('falseValues', defaults.FIELDS_FALSEVALUES)
+        self.truevalues = self.field_schema.get("trueValues", defaults.FIELDS_TRUEVALUES)
+        self.falsevalues = self.field_schema.get("falseValues", defaults.FIELDS_FALSEVALUES)
 
     def validate(self, value):
         if value in self.truevalues:
@@ -142,8 +145,8 @@ class BooleanValidator(TypeValidator):
 
 
 TYPE_MAPPER = {
-    'string': StringValidator,
-    'number': NumberValidator,
-    'integer': IntegerValidator,
-    'boolean': BooleanValidator,
+    "string": StringValidator,
+    "number": NumberValidator,
+    "integer": IntegerValidator,
+    "boolean": BooleanValidator,
 }
