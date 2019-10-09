@@ -14,14 +14,14 @@ from pycsvschema.validators import header_validators
 
 class Validator:
     _CSV_DEFAULT_PARS = {
-        "delimiter": ",",
-        "doublequote": True,
-        "escapechar": None,
-        "lineterminator": "\r\n",
-        "quotechar": '"',
-        "quoting": csv.QUOTE_MINIMAL,
-        "skipinitialspace": False,
-        "strict": False,
+        "delimiter",
+        "doublequote",
+        "escapechar",
+        "lineterminator",
+        "quotechar",
+        "quoting",
+        "skipinitialspace",
+        "strict",
     }
 
     def __init__(self, csvfile: str, schema: Dict, output: Optional[str] = None, errors: str = "raise", **kwargs):
@@ -48,10 +48,8 @@ class Validator:
 
         self.header = []
 
-        self.csv_pars = {
-            **self._CSV_DEFAULT_PARS,
-            **{k: kwargs[k] for k in set(kwargs).intersection(self._CSV_DEFAULT_PARS)},
-        }
+        # Load default csv parameters and update it with custom parameters from kwargs
+        self.csv_pars = {k: kwargs[k] for k in set(kwargs).intersection(self._CSV_DEFAULT_PARS)}
 
         self.column_validators = {"columns": {}, "unfoundfields": {}}
 

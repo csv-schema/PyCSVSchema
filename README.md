@@ -44,4 +44,6 @@ Python 3.5 or above
 
 
 ## TODO
-* tests
+* Documentation and Examples
+* Support full RFC 4180 validation
+* Tests
