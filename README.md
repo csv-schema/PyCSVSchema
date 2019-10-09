@@ -50,4 +50,5 @@ Python 3.5 or above
 ## TODO
 * Documentation and Examples
 * Support full RFC 4180 validation?
+* Decide whether to rely on Python's built-in int and float function to convert values
 * Tests

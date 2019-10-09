@@ -11,6 +11,13 @@ import jsonschema
 from pycsvschema import defaults, validators, utilities
 
 
+class Cell(object):
+    def __init__(self, value, row_number: int, column_name: str):
+        self.value = value
+        self.row_number = row_number
+        self.column_name = column_name
+
+
 class Validator:
     _CSV_DEFAULT_PARS = {
         "delimiter",
@@ -161,12 +168,19 @@ class Validator:
             header=self.header, schema=self.schema, column_validators=self.column_validators
         )
 
+    # TODO: document for callback
     def check_rows(self, csvreader, callback=lambda *args: None):
-        for line_num, row in enumerate(csvreader):
-            validators.rfc4180_validators.number_of_fields(row=row, row_number=line_num + 1, header_length=self.header_length)
+        for row_index, row in enumerate(csvreader):
+            row_number = row_index + 1
+
+            validators.rfc4180_validators.number_of_fields(
+                row=row, row_number=row_number, header_length=self.header_length
+            )
 
             for index, column_info in self.column_validators["columns"].items():
-                cell = {"value": row[index], "row_number": line_num + 1, "column_name": self.header[index]}
+                # TODO: replace cell
+                # cell = Cell(value=row[index], row_number=row_number, column_name=self.header[index])
+                cell = {"value": row[index], "row_number": row_number, "column_name": self.header[index]}
 
                 # Update cell['value'] to None if value is in missingValues
                 yield from validators.data_validators.missingvalues(
@@ -175,7 +189,6 @@ class Validator:
 
                 for validator in column_info["validators"]:
                     # Type validator convert cell value into target type, other validators don't accept None value
-                    # if validator is data_validators.field_type or c['value'] is not None:
                     yield from validator(cell=cell, schema=self.schema, field_schema=column_info["field_schema"])
 
-            callback(line_num, row)
+            callback(row_index, row)
