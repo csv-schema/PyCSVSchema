@@ -6,6 +6,7 @@ import json
 import os
 from itertools import chain
 from typing import Dict, Optional
+import copy
 
 import jsonschema
 from pycsvschema import defaults, utilities
@@ -39,11 +40,13 @@ class Validator:
 
         self.csvfile = csvfile
 
-        self.schema = schema
+        self.original_schema = schema
+
+        self.schema = copy.deepcopy(schema)
 
         self.output = output
 
-        if errors not in {"raise", "coerce"}:
+        if errors not in ("raise", "coerce"):
             raise ValueError("Unknown value for parameter errors")
         self.errors = errors
 
@@ -56,14 +59,14 @@ class Validator:
 
         self.column_validators = {"columns": {}, "unfoundfields": {}}
 
-        self.meta_schema_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "schema.json")
+        self._meta_schema_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "schema.json")
 
         self.validate_schema()
 
         self.update_schema()
 
     def validate_schema(self):
-        meta_schema = json.load(open(self.meta_schema_path, "r"))
+        meta_schema = json.load(open(self._meta_schema_path, "r"))
         jsonschema.validate(self.schema, meta_schema)
 
     def update_schema(self):
@@ -73,18 +76,17 @@ class Validator:
             self.schema["missingValues"] = defaults.MISSINGVALUES
         self.schema["missingValues"] = set(self.schema["missingValues"])
 
-        # enum in fields, definitions and patternFields
+        # Array type fields in schema could be converted to Python set
         fields_schema_with_array = (
             self.schema.get("fields", []),
             self.schema.get("definitions", {}).values(),
             self.schema.get("patternFields", {}).values(),
         )
-        array_keywords = ("trueValues", "falseValues", "enum")
+        array_keywords = {"trueValues", "falseValues", "enum"}
         for fields in fields_schema_with_array:
             for field in fields:
-                for k in array_keywords:
-                    if k in field.keys():
-                        field[k] = set(field[k])
+                for array_field in array_keywords & set(field.keys()):
+                    field[array_field] = set(field[array_field])
 
     def validate(self):
         with open(self.csvfile, "r") as csvfile:
@@ -195,8 +197,3 @@ class Validator:
                     yield from validator(c, self.schema, column_info["field_schema"])
 
             callback(line_num, row)
-
-
-class CSV2JSON(Validator):
-    def __init__(self, csvfile: str, schema: Dict, output: Optional[str], **kwargs):
-        super(CSV2JSON, self).__init__(csvfile, schema, output, **kwargs)
