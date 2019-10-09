@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*-coding: utf-8 -*-
 
-import copy
 import csv
 import json
 import os
@@ -39,9 +38,7 @@ class Validator:
 
         self.csvfile = csvfile
 
-        self.original_schema = schema
-
-        self.schema = copy.deepcopy(schema)
+        self.schema = schema
 
         self.output = output
 
