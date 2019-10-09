@@ -8,8 +8,8 @@ from itertools import chain
 from typing import Dict, Optional
 
 import jsonschema
-from pycsvschema import defaults, utilities
-from pycsvschema.validators import header_validators
+from pycsvschema import defaults, utilities, exceptions
+from pycsvschema.validators import header_validators, rfc4180_validators
 
 
 class Validator:
@@ -47,6 +47,7 @@ class Validator:
         self.errors = errors
 
         self.header = []
+        self.header_length = None
 
         # Load default csv parameters and update it with custom parameters from kwargs
         self.csv_pars = {k: kwargs[k] for k in set(kwargs).intersection(self._CSV_DEFAULT_PARS)}
@@ -67,6 +68,8 @@ class Validator:
 
             # Read first line as header
             self.header = next(csv_reader)
+            self.header_length = len(self.header)
+
             self.prepare_field_schema()
 
             with utilities.file_writer(self.output) as output:
@@ -137,9 +140,9 @@ class Validator:
                 header_index[v] = [k]
 
         for field_schema in self.schema.get("fields", defaults.FIELDS):
-            column_info = {"field_schema": field_schema, "column": field_schema["name"]}
+            column_info = {"field_schema": field_schema, "column_name": field_schema["name"]}
 
-            utilities.find_row_validators(column_info=column_info, field_schema=field_schema)
+            utilities.find_data_validators(column_info=column_info, field_schema=field_schema)
 
             # Pass the validators to one or more than one columns
             if field_schema["name"] in header_index.keys():
@@ -150,7 +153,7 @@ class Validator:
                 self.column_validators["unfoundfields"][field_schema["name"]] = column_info
 
     def check_header(self):
-        for validator_name, validator in header_validators.HEADER_OPTIONS.items():
+        for validator_name, validator in header_validators.HEADER_VALIDATORS.items():
             if validator_name in self.schema:
                 yield from validator(self.header, self.schema, self.column_validators)
 
@@ -158,15 +161,18 @@ class Validator:
 
     def check_rows(self, csvreader, callback=lambda *args: None):
         for line_num, row in enumerate(csvreader):
+            rfc4180_validators.number_of_fields(row=row, row_number=line_num + 1, header_length=self.header_length)
+
             for index, column_info in self.column_validators["columns"].items():
-                c = {"value": row[index], "row": line_num + 1, "column": self.header[index]}
+                c = {"value": row[index], "row": line_num + 1, "column_name": self.header[index]}
 
                 # Update c.value to None if value is in missingValues
-                yield from header_validators.missingvalues(c, self.schema, self.column_validators)
+                # TODO: merge value, row_number, column_name and schema, column_validators?
+                yield from header_validators.missingvalues(cell=c, schema=self.schema, column_validators=self.column_validators)
 
                 for validator in column_info["validators"]:
                     # Type validator convert cell value into target type, other validators don't accept None value
-                    # if validator is row_validators.field_type or c['value'] is not None:
-                    yield from validator(c, self.schema, column_info["field_schema"])
+                    # if validator is data_validators.field_type or c['value'] is not None:
+                    yield from validator(cell=c, schema=self.schema, field_schema=column_info["field_schema"])
 
             callback(line_num, row)

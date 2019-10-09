@@ -2,7 +2,9 @@
 
 PyCSVSchema is an implementation of [CSV Schema](https://github.com/csvschema/csvschema) in Python.
 
-This project is under heavy development.
+This project is at Alpha version and still under heavy development.
+
+## Example
 
 ```python
 >>> from pycsvschema.checker import Validator
@@ -32,6 +34,8 @@ Traceback (most recent call last):
 <ValidationError: 'Value 14.0 is not multiple of 5'; column: value; row: 3>
 ```
 
+Note that the validator does not check if the parameters for reading csv file are correct. For example, if wrong delimiter is passed in, validator is unable to figure it out and would read the whole line as one cell.
+
 ## Installation
 
 ```bash
@@ -45,5 +49,5 @@ Python 3.5 or above
 
 ## TODO
 * Documentation and Examples
-* Support full RFC 4180 validation
+* Support full RFC 4180 validation?
 * Tests

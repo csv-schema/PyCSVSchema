@@ -5,7 +5,7 @@ import contextlib
 import sys
 from itertools import islice
 
-from pycsvschema.validators import row_validators
+from pycsvschema.validators import data_validators
 
 
 @contextlib.contextmanager
@@ -16,7 +16,7 @@ def file_writer(file_name=None):
         writer.close()
 
 
-def find_row_validators(column_info, field_schema):
+def find_data_validators(column_info, field_schema):
     """
     Go through the options in field_schema, fetch the validators and add them into column_info['validators']
     """
@@ -24,9 +24,11 @@ def find_row_validators(column_info, field_schema):
         column_info["ref"] = field_schema["$ref"]
     # Otherwise, make sure type checking is the first one
     else:
-        column_info["validators"] = [row_validators.field_type]
+        # type checking always exists
+        column_info["validators"] = [data_validators.field_type]
+
         for field_option in field_schema.keys():
-            validator = row_validators.ROW_OPTIONS.get(field_option)
+            validator = data_validators.DATA_VALIDATORS.get(field_option)
             if validator is not None:
                 column_info["validators"].append(validator)
 

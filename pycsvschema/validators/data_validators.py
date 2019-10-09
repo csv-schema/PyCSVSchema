@@ -150,7 +150,7 @@ def field_ref(cell, schema, field_schema):
     pass
 
 
-ROW_OPTIONS = {
+DATA_VALIDATORS = {
     # 'type': field_type,  # always run type check before other field options
     "enum": field_enum,
     "maximum": field_maximum,

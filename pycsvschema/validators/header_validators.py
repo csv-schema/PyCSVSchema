@@ -41,7 +41,7 @@ def definitions(header, schema, column_validators):
     for ref_name, field_schema in schema["definitions"].items():
         column_info = {"field_schema": field_schema}
 
-        utilities.find_row_validators(column_info=column_info, field_schema=field_schema)
+        utilities.find_data_validators(column_info=column_info, field_schema=field_schema)
 
         column_validators["definitions"][ref_name] = column_info
 
@@ -84,9 +84,9 @@ def exactfields(header, schema, column_validators):
     for column_index, column in enumerate(header):
         field_schema = schema.get("fields", defaults.FIELDS)[column_index]
 
-        column_info = {"field_schema": field_schema, "column": column}
+        column_info = {"field_schema": field_schema, "column_name": column}
 
-        utilities.find_row_validators(column_info=column_info, field_schema=field_schema)
+        utilities.find_data_validators(column_info=column_info, field_schema=field_schema)
 
         column_validators["columns"][column_index] = column_info
 
@@ -130,7 +130,7 @@ def patternfields(header, schema, column_validators):
     column_validators["patternfields"] = {}
     for pattern, field_schema in schema["patternFields"].items():
         column_info = {"field_schema": field_schema}
-        utilities.find_row_validators(column_info=column_info, field_schema=field_schema)
+        utilities.find_data_validators(column_info=column_info, field_schema=field_schema)
 
         column_validators["patternfields"][pattern] = column_info
 
@@ -143,7 +143,7 @@ def patternfields(header, schema, column_validators):
             if not re.match(regex, column):
                 continue
 
-            new_column_info = {"column": column, "pattern": regex}
+            new_column_info = {"column_name": column, "pattern": regex}
 
             new_column_info.update(column_info)
 
@@ -162,17 +162,17 @@ def field_required(header, schema, column_validators):
     for column_info in column_validators["columns"].values():
         failed = (
             column_info["field_schema"].get("required", defaults.FIELDS_REQUIRED)
-            and column_info["column"] not in header
+            and column_info["column_name"] not in header
         )
         if failed:
-            yield exceptions.ValidationError(message="{0} is a required field".format(column_info["column"]))
+            yield exceptions.ValidationError(message="{0} is a required field".format(column_info["column_name"]))
 
     for column_name, column_info in column_validators["unfoundfields"].items():
         if column_info["field_schema"].get("required", defaults.FIELDS_REQUIRED):
-            yield exceptions.ValidationError(message="{0} is a required field".format(column_info["column"]))
+            yield exceptions.ValidationError(message="{0} is a required field".format(column_info["column_name"]))
 
 
-HEADER_OPTIONS = {
+HEADER_VALIDATORS = {
     "additionalFields": additionalfields,
     "dependencies": dependencies,
     "exactFields": exactfields,
