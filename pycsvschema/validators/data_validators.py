@@ -6,7 +6,7 @@ from pycsvschema.validators import types
 
 # Validators for options under `fields`
 # Each validator should be a generator, accepting three parameters:
-# :param cell: Cell
+# :param cell: Dict with {"value": "<cell value>", "row_number": "<row number>", "column_name": "<column name>"}
 # :param schema: full csv schema
 # :param field_schema: related option object under `fields`
 
@@ -21,7 +21,7 @@ def field_type(cell, schema, field_schema):
         yield exceptions.ValidationError(
             message="Value {0} does not satisfy the type or format".format(cell["value"]),
             column=field_schema.get("name"),
-            row=cell["row"],
+            row=cell["row_number"],
         )
     cell["value"] = mapper.value
     # TODO: do we need type?
@@ -37,7 +37,7 @@ def field_enum(cell, schema, field_schema):
         yield exceptions.ValidationError(
             message="Value {0} is not in enum of {1}".format(cell["value"], enum),
             column=field_schema.get("name"),
-            row=cell["row"],
+            row=cell["row_number"],
         )
 
 
@@ -59,7 +59,7 @@ def field_maximum(cell, schema, field_schema):
         yield exceptions.ValidationError(
             message="Value {0} is {1} maximum of {2}".format(cell["value"], comapre, maximum),
             column=field_schema.get("name"),
-            row=cell["row"],
+            row=cell["row_number"],
         )
 
 
@@ -81,7 +81,7 @@ def field_minimum(cell, schema, field_schema):
         yield exceptions.ValidationError(
             message="Value {0} is {1} minimum of {2}".format(cell["value"], comapre, minimum),
             column=field_schema.get("name"),
-            row=cell["row"],
+            row=cell["row_number"],
         )
 
 
@@ -97,7 +97,7 @@ def field_maxlength(cell, schema, field_schema):
         yield exceptions.ValidationError(
             message="Value {0} is longer than minLength of {1}".format(cell["value"], maxlength),
             column=field_schema.get("name"),
-            row=cell["row"],
+            row=cell["row_number"],
         )
 
 
@@ -113,7 +113,7 @@ def field_minlength(cell, schema, field_schema):
         yield exceptions.ValidationError(
             message="Value {0} is shorter than minLength of {1}".format(cell["value"], minlength),
             column=field_schema.get("name"),
-            row=cell["row"],
+            row=cell["row_number"],
         )
 
 
@@ -129,7 +129,7 @@ def field_multipleof(cell, schema, field_schema):
         yield exceptions.ValidationError(
             message="Value {0} is not multiple of {1}".format(cell["value"], multipleof),
             column=field_schema.get("name"),
-            row=cell["row"],
+            row=cell["row_number"],
         )
 
 
@@ -140,7 +140,9 @@ def field_nullable(cell, schema, field_schema):
     failed = cell["value"] is None
 
     if failed:
-        yield exceptions.ValidationError(message="Illegal null value", column=field_schema.get("name"), row=cell["row"])
+        yield exceptions.ValidationError(
+            message="Illegal null value", column=field_schema.get("name"), row=cell["row_number"]
+        )
 
 
 def field_ref(cell, schema, field_schema):
@@ -170,3 +172,13 @@ DATA_VALIDATORS = {
 #     groupChar
 #     exclusiveMinimum
 #     exclusiveMaximum
+
+
+# missingvalues is defined under root of schema but processes data when checking rows
+def missingvalues(cell, schema, column_validators):
+    """
+    missingvalues is not a validator, but only update cell value into None if it's in missing value list
+    """
+    if cell["value"] in set(schema.get("missingValues", defaults.MISSINGVALUES)):
+        cell["value"] = None
+    yield from ()

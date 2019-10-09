@@ -9,7 +9,6 @@ from pycsvschema import defaults, exceptions, utilities
 # Validators for root options
 # Each validator should be a generator, accepting three parameters:
 # :param header: csv header
-# :param cell: cell data in dict like {'value': 1}, only for missingvalues
 # :param schema: full csv schema
 # :param column_validators: Validator.column_validators
 
@@ -30,7 +29,7 @@ def additionalfields(header, schema, column_validators):
 
 def definitions(header, schema, column_validators):
     """
-    definitions is not a validator, but only append schema in definitions to column_validators
+    definitions does not validate any field or data, but only append schema in definitions to column_validators
 
     Update validators for all fields using $ref keyword
 
@@ -109,19 +108,9 @@ def minfields(header, schema, column_validators):
         )
 
 
-def missingvalues(cell, schema, column_validators):
-    """
-    missingvalues is not a validator, but only cell value into None if it's in missing value list
-    :param cell: cell data in dict like {'value': 1}, only for missingvalues
-    """
-    if cell["value"] in set(schema.get("missingValues", defaults.MISSINGVALUES)):
-        cell["value"] = None
-    yield from ()
-
-
 def patternfields(header, schema, column_validators):
     """
-    patternfields is not a validator, but append field schema in patternfields to column_validators
+    patternfields does not validate any field or data, but appends field schema in patternfields to column_validators
     """
     # If exactFields is True, ignore patternFields
     if schema.get("exactFields", defaults.EXACTFIELDS):
@@ -155,7 +144,22 @@ def patternfields(header, schema, column_validators):
     yield from ()
 
 
+HEADER_VALIDATORS = {
+    "additionalFields": additionalfields,
+    "dependencies": dependencies,
+    "exactFields": exactfields,
+    "maxFields": maxfields,
+    "minFields": minfields,
+    # 'missingValues': missingvalues,  # Run missingValues checking in data checking
+    "patternFields": patternfields,
+    "definitions": definitions,
+}
+
+
 def field_required(header, schema, column_validators):
+    """
+    Required is defined under field or definitions, but it is validated with header
+    """
     if schema.get("exactFields", defaults.EXACTFIELDS):
         return
 
@@ -170,15 +174,3 @@ def field_required(header, schema, column_validators):
     for column_name, column_info in column_validators["unfoundfields"].items():
         if column_info["field_schema"].get("required", defaults.FIELDS_REQUIRED):
             yield exceptions.ValidationError(message="{0} is a required field".format(column_info["column_name"]))
-
-
-HEADER_VALIDATORS = {
-    "additionalFields": additionalfields,
-    "dependencies": dependencies,
-    "exactFields": exactfields,
-    "maxFields": maxfields,
-    "minFields": minfields,
-    # 'missingValues': missingvalues,  # Run missingValues checking in row checking
-    "patternFields": patternfields,
-    "definitions": definitions,
-}

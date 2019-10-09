@@ -8,7 +8,7 @@ from itertools import chain
 from typing import Dict, Optional
 
 import jsonschema
-from pycsvschema import defaults, utilities, exceptions
+from pycsvschema import defaults, exceptions, utilities
 from pycsvschema.validators import header_validators, rfc4180_validators
 
 
@@ -155,24 +155,28 @@ class Validator:
     def check_header(self):
         for validator_name, validator in header_validators.HEADER_VALIDATORS.items():
             if validator_name in self.schema:
-                yield from validator(self.header, self.schema, self.column_validators)
+                yield from validator(header=self.header, schema=self.schema, column_validators=self.column_validators)
 
-        yield from header_validators.field_required(self.header, self.schema, self.column_validators)
+        # required is defined under field or definitions, but it is validated with header
+        yield from header_validators.field_required(
+            header=self.header, schema=self.schema, column_validators=self.column_validators
+        )
 
     def check_rows(self, csvreader, callback=lambda *args: None):
         for line_num, row in enumerate(csvreader):
             rfc4180_validators.number_of_fields(row=row, row_number=line_num + 1, header_length=self.header_length)
 
             for index, column_info in self.column_validators["columns"].items():
-                c = {"value": row[index], "row": line_num + 1, "column_name": self.header[index]}
+                cell = {"value": row[index], "row_number": line_num + 1, "column_name": self.header[index]}
 
-                # Update c.value to None if value is in missingValues
-                # TODO: merge value, row_number, column_name and schema, column_validators?
-                yield from header_validators.missingvalues(cell=c, schema=self.schema, column_validators=self.column_validators)
+                # Update cell['value'] to None if value is in missingValues
+                yield from header_validators.missingvalues(
+                    cell=cell, schema=self.schema, column_validators=self.column_validators
+                )
 
                 for validator in column_info["validators"]:
                     # Type validator convert cell value into target type, other validators don't accept None value
                     # if validator is data_validators.field_type or c['value'] is not None:
-                    yield from validator(cell=c, schema=self.schema, field_schema=column_info["field_schema"])
+                    yield from validator(cell=cell, schema=self.schema, field_schema=column_info["field_schema"])
 
             callback(line_num, row)
