@@ -11,7 +11,7 @@ class ValidationError(Exception):
         super(ValidationError, self).__init__(message, column, row_number, *args)
 
     def __str__(self):
-        return "<%s: %r; column: %s; row number: %s>" % (
+        return "<%s: %r; column name: %s; row number: %s>" % (
             self.__class__.__name__,
             self.message,
             self.column,
