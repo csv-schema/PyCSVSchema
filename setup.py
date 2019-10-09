@@ -12,7 +12,7 @@ with open("README_pypi.rst") as f:
 
 setup(
     name="pycsvschema",
-    version="0.0.5",
+    version="0.0.6",
     description="PyCSVSchema is an implementation of CSV Schema in Python.",
     long_description=long_description,
     author="Guangyang Li",
@@ -31,7 +31,8 @@ setup(
         "Programming Language :: Python :: 3.8",
     ],
     keywords="csv schema json jsonschema validation validator",
-    url="https://github.com/crowdskout/PyCSVSchema",
+    url="https://github.com/csv-schema/PyCSVSchema",
     install_requires=["jsonschema", "rfc3986"],
     package_data={"pycsvschema": ["schema.json"]},
+    include_package_data=True
 )
