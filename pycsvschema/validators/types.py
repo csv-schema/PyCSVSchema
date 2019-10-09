@@ -131,8 +131,8 @@ class BooleanValidator(TypeValidator):
     def __init__(self, field_schema):
         super().__init__(field_schema=field_schema)
         self.to_type = bool
-        self.truevalues = self.field_schema.get("trueValues", defaults.FIELDS_TRUEVALUES)
-        self.falsevalues = self.field_schema.get("falseValues", defaults.FIELDS_FALSEVALUES)
+        self.truevalues = set(self.field_schema.get("trueValues", defaults.FIELDS_TRUEVALUES))
+        self.falsevalues = set(self.field_schema.get("falseValues", defaults.FIELDS_FALSEVALUES))
 
     def validate(self, value):
         if value in self.truevalues:

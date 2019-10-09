@@ -31,7 +31,7 @@ def field_type(cell, schema, field_schema):
 def field_enum(cell, schema, field_schema):
     enum = field_schema["enum"]
 
-    failed = cell["value"] not in enum
+    failed = cell["value"] not in set(enum)
 
     if failed:
         yield exceptions.ValidationError(

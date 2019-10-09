@@ -1,12 +1,12 @@
 #!/usr/bin/python
 # -*-coding: utf-8 -*-
 
+import copy
 import csv
 import json
 import os
 from itertools import chain
 from typing import Dict, Optional
-import copy
 
 import jsonschema
 from pycsvschema import defaults, utilities
@@ -32,10 +32,9 @@ class Validator:
         :param output: Path to output file of errors. If output is None, print the error message. Default: None.
         :param error: {'raise', 'coerce'} If error is 'raise', stop the validation when it meets the first error. If
         error is 'coerce', output all errors.
-
-        Validator also accepts parameters of csv.reader, that includes delimiter, doublequote, escapechar,
-        lineterminator, quotechar, quoting, skipinitialspace and strict
-        See details on https://docs.python.org/3/library/csv.html#dialects-and-formatting-parameters
+        :param kwargs: Validator also accepts parameters of csv.reader, that includes delimiter, doublequote, escapechar,
+        lineterminator, quotechar, quoting, skipinitialspace and strict. See details on
+         https://docs.python.org/3/library/csv.html#dialects-and-formatting-parameters
         """
 
         self.csvfile = csvfile
@@ -63,30 +62,9 @@ class Validator:
 
         self.validate_schema()
 
-        self.update_schema()
-
     def validate_schema(self):
         meta_schema = json.load(open(self._meta_schema_path, "r"))
         jsonschema.validate(self.schema, meta_schema)
-
-    def update_schema(self):
-        # Convert list in schema into set
-        # missingValues
-        if "missingValues" not in self.schema.keys():
-            self.schema["missingValues"] = defaults.MISSINGVALUES
-        self.schema["missingValues"] = set(self.schema["missingValues"])
-
-        # Array type fields in schema could be converted to Python set
-        fields_schema_with_array = (
-            self.schema.get("fields", []),
-            self.schema.get("definitions", {}).values(),
-            self.schema.get("patternFields", {}).values(),
-        )
-        array_keywords = {"trueValues", "falseValues", "enum"}
-        for fields in fields_schema_with_array:
-            for field in fields:
-                for array_field in array_keywords & set(field.keys()):
-                    field[array_field] = set(field[array_field])
 
     def validate(self):
         with open(self.csvfile, "r") as csvfile:
