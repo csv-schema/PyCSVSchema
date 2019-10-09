@@ -21,7 +21,7 @@ def field_type(cell, schema, field_schema):
         yield exceptions.ValidationError(
             message="Value {0} does not satisfy the type or format".format(cell["value"]),
             column=field_schema.get("name"),
-            row=cell["row_number"],
+            row_number=cell["row_number"],
         )
     cell["value"] = mapper.value
     # TODO: do we need type?
@@ -37,7 +37,7 @@ def field_enum(cell, schema, field_schema):
         yield exceptions.ValidationError(
             message="Value {0} is not in enum of {1}".format(cell["value"], enum),
             column=field_schema.get("name"),
-            row=cell["row_number"],
+            row_number=cell["row_number"],
         )
 
 
@@ -59,7 +59,7 @@ def field_maximum(cell, schema, field_schema):
         yield exceptions.ValidationError(
             message="Value {0} is {1} maximum of {2}".format(cell["value"], comapre, maximum),
             column=field_schema.get("name"),
-            row=cell["row_number"],
+            row_number=cell["row_number"],
         )
 
 
@@ -81,7 +81,7 @@ def field_minimum(cell, schema, field_schema):
         yield exceptions.ValidationError(
             message="Value {0} is {1} minimum of {2}".format(cell["value"], comapre, minimum),
             column=field_schema.get("name"),
-            row=cell["row_number"],
+            row_number=cell["row_number"],
         )
 
 
@@ -97,7 +97,7 @@ def field_maxlength(cell, schema, field_schema):
         yield exceptions.ValidationError(
             message="Value {0} is longer than minLength of {1}".format(cell["value"], maxlength),
             column=field_schema.get("name"),
-            row=cell["row_number"],
+            row_number=cell["row_number"],
         )
 
 
@@ -113,7 +113,7 @@ def field_minlength(cell, schema, field_schema):
         yield exceptions.ValidationError(
             message="Value {0} is shorter than minLength of {1}".format(cell["value"], minlength),
             column=field_schema.get("name"),
-            row=cell["row_number"],
+            row_number=cell["row_number"],
         )
 
 
@@ -129,7 +129,7 @@ def field_multipleof(cell, schema, field_schema):
         yield exceptions.ValidationError(
             message="Value {0} is not multiple of {1}".format(cell["value"], multipleof),
             column=field_schema.get("name"),
-            row=cell["row_number"],
+            row_number=cell["row_number"],
         )
 
 
@@ -141,7 +141,7 @@ def field_nullable(cell, schema, field_schema):
 
     if failed:
         yield exceptions.ValidationError(
-            message="Illegal null value", column=field_schema.get("name"), row=cell["row_number"]
+            message="Illegal null value", column=field_schema.get("name"), row_number=cell["row_number"]
         )
 
 

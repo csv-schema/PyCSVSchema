@@ -8,8 +8,7 @@ from itertools import chain
 from typing import Dict, Optional
 
 import jsonschema
-from pycsvschema import defaults, exceptions, utilities
-from pycsvschema.validators import header_validators, rfc4180_validators
+from pycsvschema import defaults, validators, utilities
 
 
 class Validator:
@@ -59,8 +58,8 @@ class Validator:
         self.validate_schema()
 
     def validate_schema(self):
-        meta_schema = json.load(open(self._meta_schema_path, "r"))
-        jsonschema.validate(self.schema, meta_schema)
+        with open(self._meta_schema_path, "r") as meta_schema:
+            jsonschema.validate(self.schema, json.load(meta_schema))
 
     def validate(self):
         with open(self.csvfile, "r") as csvfile:
@@ -153,24 +152,24 @@ class Validator:
                 self.column_validators["unfoundfields"][field_schema["name"]] = column_info
 
     def check_header(self):
-        for validator_name, validator in header_validators.HEADER_VALIDATORS.items():
+        for validator_name, validator in validators.HEADER_VALIDATORS.items():
             if validator_name in self.schema:
                 yield from validator(header=self.header, schema=self.schema, column_validators=self.column_validators)
 
         # required is defined under field or definitions, but it is validated with header
-        yield from header_validators.field_required(
+        yield from validators.header_validators.field_required(
             header=self.header, schema=self.schema, column_validators=self.column_validators
         )
 
     def check_rows(self, csvreader, callback=lambda *args: None):
         for line_num, row in enumerate(csvreader):
-            rfc4180_validators.number_of_fields(row=row, row_number=line_num + 1, header_length=self.header_length)
+            validators.rfc4180_validators.number_of_fields(row=row, row_number=line_num + 1, header_length=self.header_length)
 
             for index, column_info in self.column_validators["columns"].items():
                 cell = {"value": row[index], "row_number": line_num + 1, "column_name": self.header[index]}
 
                 # Update cell['value'] to None if value is in missingValues
-                yield from header_validators.missingvalues(
+                yield from validators.data_validators.missingvalues(
                     cell=cell, schema=self.schema, column_validators=self.column_validators
                 )
 
