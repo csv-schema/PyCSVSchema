@@ -8,7 +8,7 @@ from itertools import chain
 from typing import Dict, Optional
 
 import jsonschema
-from pycsvschema import defaults, validators, utilities
+from pycsvschema import defaults, definitions, validators, utilities
 
 
 class Cell(object):
@@ -60,7 +60,7 @@ class Validator:
 
         self.column_validators = {"columns": {}, "unfoundfields": {}}
 
-        self._meta_schema_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "schema.json")
+        self._meta_schema_path = definitions.META_SCHEMA_PATH
 
         self.validate_schema()
 
