@@ -58,12 +58,11 @@ def dependencies(header, schema, column_validators):
     for column, dependents in schema["dependencies"].items():
         if column not in header:
             continue
-        for d in dependents:
-            if d in header:
-                continue
-            yield exceptions.ValidationError(
-                message="Field {0} is provided while {0} is not in header".format(column, d)
-            )
+        for dependent in dependents:
+            if dependent not in header:
+                yield exceptions.ValidationError(
+                    message=f"Field {column} is provided while {dependent} is not in header"
+                )
 
 
 def exactfields(header, schema, column_validators):
