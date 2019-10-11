@@ -2,8 +2,6 @@ language: python
 python:
     - "3.7"
 install:
-    - if [ "${PYTHON}" == "3.7" ]; then
-          pip3 install jsonschema;
-      fi;
+    - pip3 install jsonschema
 script:
     - python3 -m unittest discover tests
