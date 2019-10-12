@@ -3,7 +3,6 @@
 
 import csv
 import json
-import os
 from itertools import chain
 from typing import Dict, Optional
 
