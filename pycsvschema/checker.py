@@ -17,19 +17,18 @@ class Cell(object):
         self.column_name = column_name
 
 
-class Validator:
-    _CSV_DEFAULT_PARS = {
-        "delimiter",
-        "doublequote",
-        "escapechar",
-        "lineterminator",
-        "quotechar",
-        "quoting",
-        "skipinitialspace",
-        "strict",
-    }
+class RFCDialect(csv.Dialect):
+    strict = True
+    delimiter = ","
+    doublequote = True
+    lineterminator = "\r\n"
+    quotechar = '"'
+    quoting = csv.QUOTE_MINIMAL
+    skipinitialspace = False
 
-    def __init__(self, csvfile: str, schema: Dict, output: Optional[str] = None, errors: str = "raise", **kwargs):
+
+class Validator:
+    def __init__(self, csvfile: str, schema: Dict, output: Optional[str] = None, errors: str = "raise"):
         """
         :param csvfile: Path to CSV file
         :param schema: CSV Schema in dict
@@ -54,9 +53,6 @@ class Validator:
         self.header = []
         self.header_length = None
 
-        # Load default csv parameters and update it with custom parameters from kwargs
-        self.csv_pars = {k: kwargs[k] for k in set(kwargs).intersection(self._CSV_DEFAULT_PARS)}
-
         self.column_validators = {"columns": {}, "unfoundfields": {}}
 
         self._meta_schema_path = definitions.META_SCHEMA_PATH
@@ -69,7 +65,7 @@ class Validator:
 
     def validate(self):
         with open(self.csvfile, "r") as csvfile:
-            csv_reader = csv.reader(csvfile, **self.csv_pars)
+            csv_reader = csv.reader(csvfile, dialect=RFCDialect)
 
             # Read first line as header
             self.header = next(csv_reader)
