@@ -720,6 +720,19 @@
       },
       "additionalProperties": false
     },
+    "hasHeader": {
+      "description": "Whether the CSV file has header as first line.",
+      "type": "boolean",
+      "default": true
+    },
+    "header": {
+      "description": "The CSV header line.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
     "dependencies": {
       "description": "Define dependencies among fields.",
       "type": "object",

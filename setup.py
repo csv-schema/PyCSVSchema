@@ -12,7 +12,7 @@ with open("README_pypi.rst") as f:
 
 setup(
     name="pycsvschema",
-    version="0.0.6",
+    version="0.1.0",
     description="PyCSVSchema is an implementation of CSV Schema in Python.",
     long_description=long_description,
     author="Guangyang Li",
