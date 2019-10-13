@@ -18,7 +18,11 @@ class Cell(object):
 
 
 class RFCDialect(csv.Dialect):
-    strict = True
+    """
+    Default dialect is strict RFC 4180
+    """
+
+    strict = True  # use strict mode by default to fit RFC 4180
     delimiter = ","
     doublequote = True
     lineterminator = "\r\n"
@@ -28,16 +32,14 @@ class RFCDialect(csv.Dialect):
 
 
 class Validator:
-    def __init__(self, csvfile: str, schema: Dict, output: Optional[str] = None, errors: str = "raise"):
+    def __init__(self, csvfile: str, schema: Dict, output: Optional[str] = None, errors: str = "raise", strict=True):
         """
         :param csvfile: Path to CSV file
         :param schema: CSV Schema in dict
         :param output: Path to output file of errors. If output is None, print the error message. Default: None.
-        :param error: {'raise', 'coerce'} If error is 'raise', stop the validation when it meets the first error. If
+        :param errors: {'raise', 'coerce'} If error is 'raise', stop the validation when it meets the first error. If
         error is 'coerce', output all errors.
-        :param kwargs: Validator also accepts parameters of csv.reader, that includes delimiter, doublequote, escapechar,
-        lineterminator, quotechar, quoting, skipinitialspace and strict. See details on
-         https://docs.python.org/3/library/csv.html#dialects-and-formatting-parameters
+        :param strict: Whether to follow RFC 4180 strictly when parsing CSV file
         """
 
         self.csvfile = csvfile
@@ -45,6 +47,8 @@ class Validator:
         self.schema = schema
 
         self.output = output
+
+        self.strict = strict
 
         if errors not in ("raise", "coerce"):
             raise ValueError("Unknown value for parameter errors")
@@ -59,13 +63,30 @@ class Validator:
 
         self.validate_schema()
 
+        self.csv_dialect = self.prepare_dialect()
+
+    def prepare_dialect(self):
+        dialect_option_mapping = {
+            "delimiter": "delimiter",
+            "doubleQuote": "doublequote",
+            "lineTerminator": "lineterminator",
+            "quoteChar": "quotechar",
+            "skipInitialSpace": "skipinitialspace",
+        }
+        schema_dialect = self.schema.get("dialect", {})
+        return type(
+            "CSVDialect",
+            (RFCDialect,),
+            {"strict": self.strict, **{dialect_option_mapping.get(k, k): v for k, v in schema_dialect.items()}},
+        )
+
     def validate_schema(self):
         with open(self._meta_schema_path, "r") as meta_schema:
             jsonschema.validate(self.schema, json.load(meta_schema))
 
     def validate(self):
         with open(self.csvfile, "r") as csvfile:
-            csv_reader = csv.reader(csvfile, dialect=RFCDialect)
+            csv_reader = csv.reader(csvfile, dialect=self.csv_dialect)
 
             # Read first line as header
             self.header = next(csv_reader)
