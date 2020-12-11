@@ -7,7 +7,7 @@ from setuptools import setup
 
 here = path.abspath(path.dirname(__file__))
 
-with open("README_pypi.rst") as f:
+with open("README.md") as f:
     long_description = f.read()
 
 setup(
@@ -15,6 +15,7 @@ setup(
     version="0.1.0",
     description="PyCSVSchema is an implementation of CSV Schema in Python.",
     long_description=long_description,
+    long_description_content_type='text/markdown',
     author="Guangyang Li",
     author_email="mail@guangyangli.com",
     license="MIT",
