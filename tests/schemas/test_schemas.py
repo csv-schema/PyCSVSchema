@@ -11,7 +11,7 @@ from tests import TEST_DIR
 
 
 class TestSchemas(unittest.TestCase):
-    '''For testing if schemas match the meta schema'''
+    """Test if schemas match the meta schema."""
 
     def setUp(self):
         with open(definitions.META_SCHEMA_PATH, "r") as meta_schema:
@@ -19,18 +19,18 @@ class TestSchemas(unittest.TestCase):
         self._this_dir = os.path.join(TEST_DIR, "schemas")
 
     def valdiate_schema(self, schema_file):
-        '''
-        This open a single schema and validates it agaist the metaschema
-        '''
+        """Open a single schema and validates it agaist the metaschema."""
         with open(schema_file, "r") as schema:
             jsonschema.validate(json.load(schema), self._meta_schema)
 
     def test_schema_with_annotator_keywords(self):
-        schema_file = os.path.join(self._this_dir, "schema_with_annotator_keywords.json")
+        filename = "schema_with_annotator_keywords.json"
+        schema_file = os.path.join(self._this_dir, filename)
         self.valdiate_schema(schema_file)
 
     def test_schema_with_regex(self):
-        schema_file = os.path.join(self._this_dir, "schema_with_regex.json")
+        filename = "schema_with_regex.json"
+        schema_file = os.path.join(self._this_dir, filename)
         self.valdiate_schema(schema_file)
 
 
