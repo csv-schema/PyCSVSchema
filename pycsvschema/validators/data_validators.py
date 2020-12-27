@@ -49,10 +49,10 @@ def field_maximum(cell, schema, field_schema):
     exclusivemaximum = field_schema.get("exclusiveMaximum", defaults.FIELDS_EXCLUSIVEMAXIMUM)
 
     if exclusivemaximum:
-        failed = maximum < cell["value"]
+        failed = maximum <= cell["value"]
         comapre = "greater than or equal to"
     else:
-        failed = maximum <= cell["value"]
+        failed = maximum < cell["value"]
         comapre = "greater than"
 
     if failed:
@@ -71,10 +71,10 @@ def field_minimum(cell, schema, field_schema):
     exclusiveminimum = field_schema.get("exclusiveMinimum", defaults.FIELDS_EXCLUSIVEMININUM)
 
     if exclusiveminimum:
-        failed = minimum > cell["value"]
+        failed = minimum >= cell["value"]
         comapre = "less than or equal to"
     else:
-        failed = minimum >= cell["value"]
+        failed = minimum > cell["value"]
         comapre = "less than"
 
     if failed:

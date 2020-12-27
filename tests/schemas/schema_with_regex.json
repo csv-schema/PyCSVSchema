@@ -1,0 +1,19 @@
+{
+    "fields": [
+        {
+            "name": "e-mail",
+            "format": "email"
+        },
+        {
+            "name": "zipcode",
+            "type": "string",
+            "pattern": "\\d{5}"
+        },
+        {
+            "name": "donation",
+            "type": "number",
+            "groupChar": ",",
+            "minimum": 100
+        }
+    ]
+}
